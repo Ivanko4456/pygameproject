@@ -52,12 +52,13 @@ class Camera:
 	def __init__(self):
 		self.dx = 0
 		self.dy = 0
-	
+
 	# сдвинуть объект obj на смещение камеры
-	def apply(self, obj):
+	def apply(self, obj=None):
+
 		obj.rect.x += self.dx
 		obj.rect.y += self.dy
-	
+
 	# позиционировать камеру на объекте target
 	def update(self, target):
 		self.dx = -(target.rect.x + target.rect.w // 2 - W // 2)
@@ -75,10 +76,14 @@ def generate_level(level):
 			if level[y][x] == '.':
 				Tile('empty', x, y)
 			elif level[y][x] == '#':
+				Tile('empty', x, y)
 				Tile('wall', x, y)
 			elif level[y][x] == 'p':
 				Tile('empty', x, y)
 				new_player = Player(x, y)
+			elif level[y][x] == 'f':
+				Tile('empty', x, y)
+
 	# вернем игрока, а также размер поля в клетках
 	return new_player, x, y
 
@@ -90,8 +95,8 @@ def terminate():
 
 if __name__ == '__main__':
 	player, level_x, level_y = generate_level(load_level('level0.txt'))
-	camera = Camera()
 	start_screen()
+	camera = Camera()
 	
 	running = True
 	while running:
