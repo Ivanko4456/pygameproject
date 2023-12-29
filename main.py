@@ -1,3 +1,5 @@
+import pygame.sprite
+
 from utils import *
 
 pygame.init()
@@ -10,7 +12,8 @@ screen = pygame.display.set_mode(size=(W, H))
 
 tile_images = {
 	'wall': load_sprite('stone_wall.png'),
-	'empty': load_sprite('grass.png')
+	'empty': load_sprite('grass.png'),
+	'finish': load_sprite('finish.png')
 }
 player_image = load_sprite('stone_wall.png')
 
@@ -19,9 +22,11 @@ all_sprites_group = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 all_tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+finish_group = pygame.sprite.Group()
 
 
 class Tile(pygame.sprite.Sprite):
+	# todo Бро не проходит в 1 блок
 	def __init__(self, tile_type, pos_x, pos_y):
 		super().__init__(all_tiles_group, all_sprites_group)
 		self.image = tile_images[tile_type]
@@ -29,6 +34,8 @@ class Tile(pygame.sprite.Sprite):
 			tile_width * pos_x, tile_height * pos_y)
 		if tile_type == 'wall':
 			walls_group.add(self)
+		if tile_type == 'finish':
+			finish_group.add(self)
 
 
 class Player(pygame.sprite.Sprite):
@@ -82,7 +89,7 @@ def generate_level(level):
 				Tile('empty', x, y)
 				new_player = Player(x, y)
 			elif level[y][x] == 'f':
-				Tile('empty', x, y)
+				Tile('finish', x + 0.5, y + 0.5)
 
 	# вернем игрока, а также размер поля в клетках
 	return new_player, x, y
@@ -93,9 +100,8 @@ def terminate():
 	sys.exit()
 
 
-if __name__ == '__main__':
-	player, level_x, level_y = generate_level(load_level('level0.txt'))
-	start_screen()
+def play(levelnum: int):
+	player, level_x, level_y = generate_level(load_level(f'level{levelnum}.txt'))
 	camera = Camera()
 	
 	running = True
@@ -103,7 +109,7 @@ if __name__ == '__main__':
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				terminate()
-
+		
 		if pygame.key.get_pressed()[pygame.K_UP]:
 			player.update(0, -1)
 		if pygame.key.get_pressed()[pygame.K_DOWN]:
@@ -113,6 +119,12 @@ if __name__ == '__main__':
 		if pygame.key.get_pressed()[pygame.K_LEFT]:
 			player.update(-1, 0)
 			
+		if pygame.sprite.spritecollide(player, finish_group, dokill=False):
+			screen.fill((0, 0, 0))
+			for s in all_sprites_group:
+				s.kill()
+			break
+		
 		screen.fill((0, 0, 0))
 		# изменяем ракурс камеры
 		camera.update(player)
@@ -125,3 +137,10 @@ if __name__ == '__main__':
 		
 		pygame.display.flip()
 		clock.tick(FPS)
+		
+		
+if __name__ == '__main__':
+	start_screen()
+	play(0)
+	play(1)
+	play(2)
